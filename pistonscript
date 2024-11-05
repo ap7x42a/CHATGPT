@@ -1,0 +1,254 @@
+// Space Engineers Piston Control Script for Extension and Retraction Patterns
+List<IMyPistonBase> pistons = new List<IMyPistonBase>();
+Dictionary<int, IMyPistonBase> pistonOrder = new Dictionary<int, IMyPistonBase>();
+
+// Directly map piston numbers to the specific names
+string[] orderedNames = {
+    "Column 1 Middle Piston 1", "Column 1 Middle Piston 2", "Column 1 Middle Piston 3",
+    "Column 1 Middle Piston 4", "Column 1 Middle Piston 5", "Column 1 Middle Piston 6",
+    "Column 1 Middle Piston 7", "Column 1 Middle Piston 8", "Column 1 Middle Piston 9"
+};
+
+float extendSpeed = 0.5f; // Extend speed in meters per second
+float retractSpeed = -0.5f; // Retract speed in meters per second
+double timeAccumulator = 0;
+int currentIndex = 0;
+bool extending = false;
+bool retracting = false;
+bool demoMode = false;
+string currentPattern = "";
+string[] demoSequence = {
+    "Sequential", "retract1", "Wave", "retract2", "Spiral", "retract3",
+    "Radial", "retract1", "Zigzag", "retract2", "CornersIn", "retract3"
+};
+int demoStep = 0;
+bool patternComplete = false;
+
+public Program()
+{
+    // Initialize pistons and reset them on script initialization
+    for (int i = 0; i < orderedNames.Length; i++)
+    {
+        var piston = GridTerminalSystem.GetBlockWithName(orderedNames[i]) as IMyPistonBase;
+        if (piston != null)
+        {
+            pistons.Add(piston);
+            pistonOrder[i + 1] = piston;
+            piston.Velocity = retractSpeed; // Set to retract speed initially
+        }
+        else
+        {
+            Echo($"Error: Piston '{orderedNames[i]}' not found.");
+        }
+    }
+    ResetPistons();
+}
+
+public void Main(string argument, UpdateType updateSource)
+{
+    if (argument == "Demonstration")
+    {
+        demoMode = true;
+        demoStep = 0;
+        patternComplete = false;
+        timeAccumulator = 0;
+        Runtime.UpdateFrequency = UpdateFrequency.Update10;
+        Echo("Starting demonstration sequence.");
+    }
+    else if (demoMode)
+    {
+        DemoSequence();
+    }
+    else if (argument.StartsWith("retract"))
+    {
+        StartPattern(argument, isRetraction: true);
+    }
+    else if (argument != "")
+    {
+        StartPattern(argument, isRetraction: false);
+    }
+
+    if (extending || retracting)
+    {
+        ExecutePattern();
+    }
+    DisplayStatus();
+}
+
+void StartPattern(string patternName, bool isRetraction)
+{
+    currentPattern = patternName;
+    currentIndex = 0;
+    extending = !isRetraction;
+    retracting = isRetraction;
+    patternComplete = false;
+    timeAccumulator = 0;
+    Echo($"Starting pattern: {currentPattern}");
+}
+
+void DemoSequence()
+{
+    timeAccumulator += Runtime.TimeSinceLastRun.TotalSeconds;
+
+    // Wait for 1 second delay between patterns and ensure current pattern is complete
+    if (timeAccumulator >= 1.0 && patternComplete)
+    {
+        if (demoStep < demoSequence.Length)
+        {
+            StartPattern(demoSequence[demoStep], isRetraction: demoSequence[demoStep].StartsWith("retract"));
+            demoStep++;
+            timeAccumulator = 0;
+        }
+        else
+        {
+            demoMode = false;
+            Runtime.UpdateFrequency = UpdateFrequency.None;
+            Echo("Demonstration sequence complete.");
+        }
+    }
+}
+
+void ExecutePattern()
+{
+    timeAccumulator += Runtime.TimeSinceLastRun.TotalSeconds;
+
+    switch (currentPattern)
+    {
+        case "Sequential":
+            SequentialPattern(new int[] { 3, 2, 9, 8, 1, 4, 5, 6, 7 }, 0.75, extendSpeed);
+            break;
+        
+        case "Spiral":
+            SequentialPattern(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0.75, extendSpeed);
+            break;
+        
+        case "Wave":
+            GroupedPattern(new int[][] { new int[] { 3 }, new int[] { 2, 4 }, new int[] { 5, 1, 9 }, new int[] { 6, 8 }, new int[] { 7 } }, 0.75, extendSpeed);
+            break;
+
+        case "Radial":
+            GroupedPattern(new int[][] { new int[] { 1 }, new int[] { 2, 4, 6, 8 }, new int[] { 3, 5, 7, 9 } }, 0.75, extendSpeed);
+            break;
+
+        case "Zigzag":
+            SequentialPattern(new int[] { 3, 5, 7, 2, 4, 8, 1, 6, 9 }, 0.75, extendSpeed);
+            break;
+
+        case "CornersIn":
+            GroupedPattern(new int[][] { new int[] { 3, 9, 5, 7 }, new int[] { 2, 8, 4, 6 }, new int[] { 1 } }, 0.75, extendSpeed);
+            break;
+
+        case "retract1":
+            GroupedPattern(new int[][] { new int[] { 2, 4, 6, 8 }, new int[] { 3, 5, 7, 9 }, new int[] { 1 } }, 0.75, retractSpeed);
+            break;
+
+        case "retract2":
+            GroupedPattern(new int[][] { new int[] { 2, 6 }, new int[] { 3, 5, 7, 9 }, new int[] { 1 } }, 0.75, retractSpeed);
+            break;
+
+        case "retract3":
+            CustomRetractionSequence(new int[] { 9, 7, 8, 5, 6, 3, 4, 2, 1 }, new float[] { 0.5f, 0.25f, 0.25f, 0.5f, 0.25f, 0.5f, 0.25f, 0.75f, 0.25f });
+            break;
+    }
+}
+
+void SequentialPattern(int[] order, double interval, float speed)
+{
+    if (currentIndex < order.Length && timeAccumulator >= interval)
+    {
+        var piston = pistonOrder[order[currentIndex]];
+        piston.Velocity = speed;
+        Echo($"Setting Piston {order[currentIndex]} to speed {speed} in Sequential Pattern");
+        
+        timeAccumulator = 0;
+        currentIndex++;
+    }
+    else if (currentIndex >= order.Length)
+    {
+        patternComplete = true;
+        StopSequence();
+    }
+}
+
+void GroupedPattern(int[][] groups, double interval, float speed)
+{
+    if (currentIndex < groups.Length && timeAccumulator >= interval)
+    {
+        foreach (int pistonNumber in groups[currentIndex])
+        {
+            var piston = pistonOrder[pistonNumber];
+            piston.Velocity = speed;
+            Echo($"Setting Piston {pistonNumber} to speed {speed} in Grouped Pattern");
+        }
+        
+        timeAccumulator = 0;
+        currentIndex++;
+    }
+    else if (currentIndex >= groups.Length)
+    {
+        patternComplete = true;
+        StopSequence();
+    }
+}
+
+void CustomRetractionSequence(int[] pistonsOrder, float[] distances)
+{
+    if (currentIndex < pistonsOrder.Length && timeAccumulator >= 0.1)
+    {
+        var piston = pistonOrder[pistonsOrder[currentIndex]];
+        float targetDistance = distances[currentIndex];
+        
+        if (piston.CurrentPosition >= targetDistance)
+        {
+            piston.Velocity = retractSpeed;
+            Echo($"Retracting Piston {pistonsOrder[currentIndex]} to {targetDistance} meters");
+            currentIndex++;
+            timeAccumulator = 0;
+        }
+    }
+    else if (currentIndex >= pistonsOrder.Length)
+    {
+        patternComplete = true;
+        StopSequence();
+    }
+}
+
+void StopSequence()
+{
+    extending = false;
+    retracting = false;
+    Runtime.UpdateFrequency = demoMode ? UpdateFrequency.Update10 : UpdateFrequency.None;
+    Echo("Sequence complete.");
+}
+
+void ResetPistons()
+{
+    Echo("Resetting all pistons to retracted state.");
+    foreach (var piston in pistons)
+    {
+        piston.Velocity = retractSpeed;
+    }
+    extending = false;
+    retracting = false;
+    timeAccumulator = 0;
+    currentIndex = 0;
+    Runtime.UpdateFrequency = UpdateFrequency.None;
+}
+
+void DisplayStatus()
+{
+    var surface = Me.GetSurface(0);
+    var status = new System.Text.StringBuilder();
+
+    status.AppendLine("Piston Control Status:");
+    status.AppendLine($"Current Pattern: {currentPattern}");
+    status.AppendLine($"Mode: {(extending ? "Extending" : retracting ? "Retracting" : "Idle")}");
+    
+    for (int i = 0; i < pistons.Count; i++)
+    {
+        var piston = pistonOrder[i + 1];
+        string state = piston.CurrentPosition > 0.1 ? "Extended" : "Retracted";
+        status.AppendLine($"Piston {i + 1}: {state} ({piston.CurrentPosition:F2} m)");
+    }
+    surface.WriteText(status.ToString());
+}
