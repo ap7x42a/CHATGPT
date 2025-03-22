@@ -370,7 +370,7 @@ void UpdateLCDStatus()
         totalBatteryCapacity += battery.MaxStoredPower;
     }
     double netCharge = totalBatteryInput - totalBatteryOutput; // positive means charging
-    string fullChargeTimeStr = "Infinite";
+    string fullChargeTimeStr = "Never";
     Color fullChargeTimeColor = Color.Green;
     if (netCharge > 0)
     {
