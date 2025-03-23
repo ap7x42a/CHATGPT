@@ -121,8 +121,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 1"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 1,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -130,8 +130,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 2"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 2,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -139,8 +139,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 3"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 3,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -148,8 +148,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 4"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 4,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -157,8 +157,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 5"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 5,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -166,8 +166,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 6"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 6,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -175,8 +175,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 7"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 7,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -184,8 +184,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Neon Tubes 8"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 8,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -193,8 +193,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Floor Neon Tubes 1"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 9,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -202,8 +202,8 @@ void InitializePresets() {
     defaultPreset["Reactor Room Floor Neon Tubes 2"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 10,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(175, 150, 100)
@@ -217,8 +217,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 1"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 1,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -226,8 +226,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 2"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 2,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -235,8 +235,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 3"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 3,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -244,8 +244,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 4"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 4,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -253,8 +253,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 5"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 5,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -262,8 +262,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 6"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 6,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -271,8 +271,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 7"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 7,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -280,8 +280,8 @@ void InitializePresets() {
     redPreset["Reactor Room Neon Tubes 8"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 8,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -289,8 +289,8 @@ void InitializePresets() {
     redPreset["Reactor Room Floor Neon Tubes 1"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 9,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
@@ -298,14 +298,13 @@ void InitializePresets() {
     redPreset["Reactor Room Floor Neon Tubes 2"] = new LightGroupConfig() {
         Mode = "flicker",
         SequenceOrder = 10,
-        FlickerSpeed = 0.6f,
-        FlickerDuration = 2.0f,
+        FlickerSpeed = 0.9f,
+        FlickerDuration = 1.0f,
         FadeSpeed = 0f,
         ToggleInterval = 0.1f,
         TargetColor = new Color(255, 0, 0)
     };
 
-    // Add the default preset to our presets collection.
     presets["red"] = redPreset;
     // You can add additional presets here using a similar pattern.
 
