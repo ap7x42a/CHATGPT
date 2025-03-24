@@ -1,0 +1,316 @@
+//////////////////////////////////////////////////////////////
+// Reactor Aux Control - Secondary Script
+//
+// This script runs on its own programmable block and takes 
+// over the following LCDs:
+//
+//   Left LCD:  "Reactor Room Aux 2 Button LCD"  (ButtonPanel)
+//   Right LCD: "Reactor Room Aux Right Corner LCD" (TextPanel)
+//
+// Left LCD displays (using sprite-drawn text):
+//   - A fixed header ("Aux. Systems Required") in red.
+//   - Dynamic information:
+//       * Aux Left Batteries: from blocks "Reactor Left Aux Battery 1"
+//         and "Reactor Left Aux Battery 2" (shows "X/2"; green if both are on)
+//       * Aux Right Batteries: from blocks "Reactor Right Aux Battery 1"
+//         and "Reactor Right Aux Battery 2" (same logic)
+//       * Aux Left Coolant Pump: simulated with "Aux Left Coolant Pump Battery"
+//       * Aux Right Coolant Pump: simulated with "Aux Right Coolant Pump Battery"
+//       * A message: "10MW of stored power is required\nto activate this reactor."
+//       * Stored Power: total stored power from all batteries (in MWh)
+//         is shown in green if ≥10 MWh, red otherwise.
+//         Also toggles "Reactor Room Main Control Battery" accordingly.
+//   - A horizontal menu at the bottom with two options ("Left" and "Right")
+//     that change selection with button1/button2, and pressing button3
+//     displays a placeholder detail message on the right LCD.
+//
+// Button mapping:
+//   button1: select "Left" in the menu
+//   button2: select "Right" in the menu
+//   button3: execute selection (update detail message on right LCD)
+//
+// Appearance mimics your main script (colors, fonts, spacing).
+//////////////////////////////////////////////////////////////
+
+// ----------------- TUNABLE CONFIG -----------------
+float headerFontScale       = 0.6f;  // Scale for header text
+float contentLineSpacing    = 20f;   // Spacing between dynamic info lines
+
+// We can't reference each other in field initializers, so we'll define them as fields:
+Vector2 headerFixedPos;  // We'll assign in constructor
+float   headerHeight;     // We'll assign in constructor
+Vector2 infoStartPos;     // We'll assign in constructor
+
+// Menu config
+float   menuFontSize     = 2.0f;
+Vector2 menuPos;          // We'll assign in constructor
+float   menuItemSpacing   = 150f;   // horizontal spacing between menu items
+
+// Colors
+Color headerColor   = Color.Red;
+Color onlineColor   = Color.Green;
+Color offlineColor  = Color.Red;
+Color normalTextColor = Color.White;
+
+// ----------------- GLOBAL LCD VARIABLES -----------------
+IMyTextSurface leftLCD;   // "Reactor Room Aux 2 Button LCD"
+IMyTextSurface rightLCD;  // "Reactor Room Aux Right Corner LCD"
+
+// Menu selection: 0 = "Left", 1 = "Right"
+int menuSide = 0;
+
+// Placeholder detail message displayed on right LCD
+string lastActionMessage = "";
+
+// ----------------- PROGRAM INIT -----------------
+public Program() {
+    // Fix the "field initializer" error by assigning these in the constructor:
+    headerFixedPos = new Vector2(10, 10);
+    headerHeight   = 30f;
+    infoStartPos   = new Vector2(10, headerFixedPos.Y + headerHeight + 5);
+    menuPos        = new Vector2(10, 450);  // adjust if needed
+
+    Runtime.UpdateFrequency = UpdateFrequency.Update10;
+    
+    // 1) Retrieve left LCD from "Reactor Room Aux 2 Button LCD" (a ButtonPanel)
+    IMyTerminalBlock leftBlock = GridTerminalSystem.GetBlockWithName("Reactor Room Aux 2 Button LCD");
+    if(leftBlock is IMyTextSurfaceProvider) {
+        leftLCD = (leftBlock as IMyTextSurfaceProvider).GetSurface(0);
+    }
+    else {
+        leftLCD = leftBlock as IMyTextSurface;
+    }
+    
+    // 2) Retrieve right LCD from "Reactor Room Aux Right Corner LCD" (a TextPanel)
+    rightLCD = GridTerminalSystem.GetBlockWithName("Reactor Room Aux Right Corner LCD") as IMyTextSurface;
+    
+    // 3) Set both LCDs to SCRIPT content
+    if(leftLCD != null) {
+        leftLCD.ContentType = ContentType.SCRIPT;
+    }
+    if(rightLCD != null) {
+        rightLCD.ContentType = ContentType.SCRIPT;
+    }
+    
+    // 4) Force an immediate update
+    UpdateLeftLCD();
+    UpdateRightLCD();
+}
+
+// ----------------- MAIN FUNCTION -----------------
+public void Main(string argument, UpdateType updateSource) {
+    // Check for button inputs
+    if((updateSource & (UpdateType.Terminal | UpdateType.Trigger)) != 0) {
+        if(!string.IsNullOrWhiteSpace(argument)) {
+            argument = argument.ToLower();
+            if(argument.StartsWith("button1")) {
+                // user pressed button1 => select "Left"
+                menuSide = 0;
+            }
+            else if(argument.StartsWith("button2")) {
+                // user pressed button2 => select "Right"
+                menuSide = 1;
+            }
+            else if(argument.StartsWith("button3")) {
+                // user pressed button3 => execute the action
+                if(menuSide == 0) {
+                    lastActionMessage = "Reactor Aux Control Room Left:\n[Placeholder details for left side]";
+                }
+                else {
+                    lastActionMessage = "Reactor Aux Control Room Right:\n[Placeholder details for right side]";
+                }
+            }
+        }
+    }
+    
+    // Continuously update both LCDs
+    UpdateLeftLCD();
+    UpdateRightLCD();
+}
+
+// ----------------- UPDATE LEFT LCD (Display Aux Info + Menu) -----------------
+void UpdateLeftLCD() {
+    if(leftLCD == null) return;
+    
+    Vector2 size = leftLCD.TextureSize;
+    using(var frame = leftLCD.DrawFrame()) {
+        // Draw black background
+        var bg = new MySprite(SpriteType.TEXTURE, "SquareSimple", size * 0.5f, size, Color.Black);
+        frame.Add(bg);
+        
+        // Draw the fixed header at headerFixedPos
+        var headerSprite = new MySprite(SpriteType.TEXT, "Aux. Systems Required");
+        headerSprite.Position        = headerFixedPos;
+        headerSprite.Color           = headerColor;  // red
+        headerSprite.FontId          = "Monospace";
+        headerSprite.RotationOrScale = headerFontScale;
+        headerSprite.Alignment       = TextAlignment.LEFT;
+        frame.Add(headerSprite);
+        
+        // Now draw dynamic info below the header
+        float y = infoStartPos.Y;
+        float x = infoStartPos.X;
+        
+        // Aux Left Batteries
+        int leftBattOnline = GetBatteryOnlineCount("Reactor Left Aux Battery 1", "Reactor Left Aux Battery 2");
+        string leftBattText = "Aux Left Batteries: " + leftBattOnline + "/2";
+        Color leftBattColor = (leftBattOnline == 2) ? onlineColor : offlineColor;
+        DrawLine(frame, x, y, leftBattText, normalTextColor, leftBattColor);
+        y += contentLineSpacing;
+        
+        // Aux Right Batteries
+        int rightBattOnline = GetBatteryOnlineCount("Reactor Right Aux Battery 1", "Reactor Right Aux Battery 2");
+        string rightBattText = "Aux Right Batteries: " + rightBattOnline + "/2";
+        Color rightBattColor = (rightBattOnline == 2) ? onlineColor : offlineColor;
+        DrawLine(frame, x, y, rightBattText, normalTextColor, rightBattColor);
+        y += contentLineSpacing;
+        
+        // Aux Left Coolant Pump
+        bool leftPump = GetBatteryStatus("Aux Left Coolant Pump Battery");
+        string leftPumpText = "Aux Left Coolant Pump: " + (leftPump ? "ONLINE" : "OFFLINE");
+        Color leftPumpColor = leftPump ? onlineColor : offlineColor;
+        DrawLine(frame, x, y, leftPumpText, normalTextColor, leftPumpColor);
+        y += contentLineSpacing;
+        
+        // Aux Right Coolant Pump
+        bool rightPump = GetBatteryStatus("Aux Right Coolant Pump Battery");
+        string rightPumpText = "Aux Right Coolant Pump: " + (rightPump ? "ONLINE" : "OFFLINE");
+        Color rightPumpColor = rightPump ? onlineColor : offlineColor;
+        DrawLine(frame, x, y, rightPumpText, normalTextColor, rightPumpColor);
+        y += contentLineSpacing;
+        
+        // Message body
+        string body = "10MW of stored power is required\nto activate this reactor.";
+        DrawMultilineText(frame, x, y, body, normalTextColor, headerFontScale);
+        y += contentLineSpacing * 2;
+        
+        // Stored Power
+        double totalPower = GetTotalStoredPower();
+        string storedPowerText = "Stored Power: " + totalPower.ToString("F1") + " MWh";
+        Color storedPowerColor = (totalPower >= 10.0) ? onlineColor : offlineColor;
+        DrawLine(frame, x, y, storedPowerText, normalTextColor, storedPowerColor);
+        y += contentLineSpacing;
+        
+        // Toggle Reactor Room Main Control Battery if totalPower >= 10
+        ToggleMainControlBattery(totalPower);
+        
+        // Draw the bottom horizontal menu
+        DrawMenu(frame, size);
+    }
+}
+
+// ----------------- UPDATE RIGHT LCD (Detail Message) -----------------
+void UpdateRightLCD() {
+    if(rightLCD == null) return;
+    
+    Vector2 size = rightLCD.TextureSize;
+    using(var frame = rightLCD.DrawFrame()) {
+        // background
+        var bg = new MySprite(SpriteType.TEXTURE, "SquareSimple", size * 0.5f, size, Color.Black);
+        frame.Add(bg);
+        
+        // If we have a detail message, display it
+        if(!string.IsNullOrEmpty(lastActionMessage)) {
+            DrawMultilineText(frame, 10, 10, lastActionMessage, normalTextColor, headerFontScale);
+        }
+    }
+}
+
+// ----------------- DRAWING FUNCTIONS -----------------
+void DrawLine(MySpriteDrawFrame frame, float x, float y, string text, Color textColor, Color highlightColor) {
+    // We ignore highlightColor for now, but we could do something with it if needed
+    var sprite = new MySprite(SpriteType.TEXT, text);
+    sprite.Position = new Vector2(x, y);
+    sprite.Color = textColor;
+    sprite.FontId = "Monospace";
+    sprite.RotationOrScale = headerFontScale;
+    sprite.Alignment = TextAlignment.LEFT;
+    frame.Add(sprite);
+}
+
+void DrawMultilineText(MySpriteDrawFrame frame, float x, float y, string text, Color textColor, float scale) {
+    string[] lines = text.Split('\n');
+    foreach(string ln in lines) {
+        var sprite = new MySprite(SpriteType.TEXT, ln);
+        sprite.Position = new Vector2(x, y);
+        sprite.Color = textColor;
+        sprite.FontId = "Monospace";
+        sprite.RotationOrScale = scale;
+        sprite.Alignment = TextAlignment.LEFT;
+        frame.Add(sprite);
+        y += contentLineSpacing;
+    }
+}
+
+void DrawMenu(MySpriteDrawFrame frame, Vector2 size) {
+    // We'll place the menu near the bottom
+    float y = size.Y - 40;  // adjust if needed
+    float leftX  = 50;
+    float rightX = leftX + menuItemSpacing;
+    
+    // "Left" option
+    var leftText = new MySprite(SpriteType.TEXT, "Left");
+    leftText.Position = new Vector2(leftX, y);
+    leftText.FontId = "Monospace";
+    leftText.RotationOrScale = menuFontSize;
+    leftText.Alignment = TextAlignment.LEFT;
+    leftText.Color = (menuSide == 0) ? Color.Black : Color.White;
+    // If selected => highlight
+    if(menuSide == 0) {
+        var highlight = new MySprite(SpriteType.TEXTURE, "SquareSimple");
+        highlight.Position = new Vector2(leftX + 40, y + 10);
+        highlight.Size = new Vector2(80, 30);
+        highlight.Color = new Color(0, 128, 128);
+        frame.Add(highlight);
+    }
+    frame.Add(leftText);
+    
+    // "Right" option
+    var rightText = new MySprite(SpriteType.TEXT, "Right");
+    rightText.Position = new Vector2(rightX, y);
+    rightText.FontId = "Monospace";
+    rightText.RotationOrScale = menuFontSize;
+    rightText.Alignment = TextAlignment.LEFT;
+    rightText.Color = (menuSide == 1) ? Color.Black : Color.White;
+    if(menuSide == 1) {
+        var highlight = new MySprite(SpriteType.TEXTURE, "SquareSimple");
+        highlight.Position = new Vector2(rightX + 40, y + 10);
+        highlight.Size = new Vector2(80, 30);
+        highlight.Color = new Color(0, 128, 128);
+        frame.Add(highlight);
+    }
+    frame.Add(rightText);
+}
+
+// ----------------- BATTERY HELPER FUNCTIONS -----------------
+int GetBatteryOnlineCount(string name1, string name2) {
+    int count = 0;
+    IMyBatteryBlock bat1 = GridTerminalSystem.GetBlockWithName(name1) as IMyBatteryBlock;
+    IMyBatteryBlock bat2 = GridTerminalSystem.GetBlockWithName(name2) as IMyBatteryBlock;
+    if(bat1 != null && bat1.Enabled) count++;
+    if(bat2 != null && bat2.Enabled) count++;
+    return count;
+}
+
+bool GetBatteryStatus(string name) {
+    IMyBatteryBlock bat = GridTerminalSystem.GetBlockWithName(name) as IMyBatteryBlock;
+    if(bat != null) return bat.Enabled;
+    return false;
+}
+
+double GetTotalStoredPower() {
+    List<IMyBatteryBlock> batteries = new List<IMyBatteryBlock>();
+    GridTerminalSystem.GetBlocksOfType(batteries);
+    double total = 0;
+    foreach(var bat in batteries) {
+        total += bat.CurrentStoredPower;
+    }
+    return total;
+}
+
+void ToggleMainControlBattery(double totalStoredPower) {
+    IMyBatteryBlock mainControl = GridTerminalSystem.GetBlockWithName("Reactor Room Main Control Battery") as IMyBatteryBlock;
+    if(mainControl != null) {
+        mainControl.Enabled = (totalStoredPower >= 10.0);
+    }
+}
